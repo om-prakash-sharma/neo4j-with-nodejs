@@ -1,0 +1,128 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo4J example</title>
+    <style>
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 16px;
+            resize: none;
+        }
+
+        button {
+            width: 100px;
+            height: 40px;
+            margin: 10 0;
+            border-radius: 5px;
+            border: 1px solid #fff;
+            background: #2196f3;
+            color: white;
+        }
+
+        button:hover {
+            color: #2196f3;
+            background: white;
+            border: 1px solid #2196f3;
+        }
+
+        div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            text-transform: capitalize;
+        }
+
+        tr:nth-child(even) {
+            background-color: #D6EEEE;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Neo4j Example</h1>
+
+    <div>
+        <textarea id="txt-box" name="msg" rows="2" cols="50">MATCH (n:Supplier) RETURN n LIMIT 25</textarea>
+        <button onclick="sendNotification(event)"> Execute </button>
+    </div>
+    <div style="overflow: auto;height: calc(100vh - 250px);">
+        <table id="result">
+        </table>
+    </div>
+
+    <script>
+        const requestOption = (searchTxt = '') => {
+            const header = new Headers();
+            header.append("Content-Type", "application/json");
+            return {
+                method: 'POST',
+                headers: header,
+                body: JSON.stringify({
+                    "search": searchTxt
+                })
+            }
+        }
+
+        function sendNotification(e) {
+            const msg = document.getElementById('txt-box').value;
+            fetch(`/api/search`, requestOption(msg))
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    displayResult(data.result);
+                });
+        }
+
+        function displayResult(list) {
+            const table = document.getElementById('result');
+            let rows = '';
+            for (let i = 0, len = list.length; i < len; i++) {
+                // add table header
+                if (i == 0) {
+                    const header = createRow(Object.keys(list[i]), true);
+                    rows = `<tr>${header}</tr>`;
+                }
+
+                const columns = createRow(Object.values(list[i]));
+                rows = rows + `<tr>${columns}</tr>`;
+            }
+            table.innerHTML = rows;
+        }
+
+        function createRow(node = [], isHeader = false) {
+            const type = isHeader ? 'th' : 'td';
+            return node.reduce((result, prop) => {
+                result = `${result}<${type}>${typeof prop === 'object' ? JSON.stringify(prop) : prop}</${type}>`
+                return result;
+            }, '');
+        }
+    </script>
+</body>
+
+</html>
