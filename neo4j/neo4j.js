@@ -28,7 +28,15 @@ class Neo4J {
             const session = this.driver.session();
             const result = await session.executeRead(tx => tx.run(query))
             return result.records.map(e => {
-                return e._fields?.[0]?.properties;
+                if (e._fields?.[0]?.properties) {
+                    return e._fields?.[0]?.properties;
+                }
+                const data = {};
+                const { keys, _fields } = e;
+                for (let i = 0; i < keys.length; i++) {
+                    data[keys[i]] = _fields[i];
+                }
+                return data;
             });
         } catch (e) {
             return Promise.reject(e.message);

@@ -101,15 +101,15 @@
 
         function displayResult(list) {
             const table = document.getElementById('result');
-            let rows = '';
+            const headerList = getHeaders(list);
+            const header = createRow(headerList, true);
+            let rows = `<tr>${header}</tr>`;
             for (let i = 0, len = list.length; i < len; i++) {
-                // add table header
-                if (i == 0) {
-                    const header = createRow(Object.keys(list[i]), true);
-                    rows = `<tr>${header}</tr>`;
+                let values = Object.values(list[i]);
+                if (headerList.length != values.length) {
+                    values = headerList.map(e => list[i][e] ?? '')
                 }
-
-                const columns = createRow(Object.values(list[i]));
+                const columns = createRow(values);
                 rows = rows + `<tr>${columns}</tr>`;
             }
             table.innerHTML = rows;
@@ -122,6 +122,14 @@
                 return result;
             }, '');
         }
+
+        function getHeaders(list = []) {
+            return [...list.reduce((res, e) => {
+                res = new Set([...res, ...Object.keys(e)])
+                return res;
+            }, [])]
+        }
+
     </script>
 </body>
 
