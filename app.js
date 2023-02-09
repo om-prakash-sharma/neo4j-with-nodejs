@@ -16,10 +16,32 @@ app.post('/api/search', async (req, res) => {
     try {
         const keyword = req.body.search;
         const result = await Neo4J.getInstance().executeQuery(keyword);
-        return res.status(200).send({ result })
+        const headerList = getHeaders(result || [])
+        if (result.length) {
+            result.forEach(row => {
+                headerList.map(e => {
+                    // handle empty values
+                    if (!row[e]) {
+                        row[e] = '';
+                    }
+                    // handle integer value
+                    if (row[e].constructor.name == 'Integer') {
+                        row[e] = row[e].toString();
+                    }
+                })
+            })
+        }
+        return res.status(200).send({ result, headerList })
     } catch (error) {
         return res.status(500).send({ msg: error.message })
     }
 })
+
+function getHeaders(list = []) {
+    return [...list.reduce((res, e) => {
+        res = new Set([...res, ...Object.keys(e)])
+        return res;
+    }, [])]
+}
 
 export default app;
