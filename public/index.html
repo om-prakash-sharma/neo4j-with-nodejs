@@ -61,15 +61,58 @@
         tr:nth-child(even) {
             background-color: #D6EEEE;
         }
+
+        .child-prop {
+            display: inline;
+        }
+
+        .child-prop input {
+            height: 35px;
+            width: 200px;
+            border-radius: 4px;
+            padding-left: 10px;
+        }
+
+        select {
+            width: 99px;
+            height: 38px;
+            border-radius: 4px;
+            padding-left: 15px;
+        }
+
+        #toggleSearch {
+            background: #f33c21;
+            width: 200px;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Neo4j Example</h1>
-
-    <div>
-        <textarea id="txt-box" name="msg" rows="2" cols="50">MATCH (n:Supplier) RETURN n LIMIT 25</textarea>
-        <button onclick="sendNotification(event)"> Execute </button>
+    <h1>Neo4j Example <button id="toggleSearch" onclick="swithcSearchOption()">Toggle Search Option</button></h1>
+    <div class="inputArea">
+        <div id="textFreeSearch" style="display: none;">
+            <textarea id="txt-box" name="msg" rows="2" cols="50">MATCH (n:Supplier) RETURN n LIMIT 25</textarea>
+            <button onclick="sendNotification(event, true)"> Execute </button>
+        </div>
+        <div id="dropdownSearchArea">
+            <div id="dropdownSearch">
+                <div class="child-prop">
+                    <input type="text" name="propName" value="" placeholder="property name" />
+                    <input type="text" name="propValue" value="" placeholder="property value" />
+                    <button onclick="addNew()"> + </button>
+                    <button onclick="removeChildren(event)"> - </button>
+                </div>
+            </div>
+            <div style="display: inline-block;">
+                <select id="limit-box" name="limit" placeholder="Limit">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+                <button onclick="sendNotification(event)"> Execute </button>
+            </div>
+        </div>
     </div>
     <div style="overflow: auto;height: calc(100vh - 250px);">
         <table id="result">
@@ -77,21 +120,40 @@
     </div>
 
     <script>
-        const requestOption = (searchTxt = '') => {
+        const requestOption = (bodyPayload = {}) => {
             const header = new Headers();
             header.append("Content-Type", "application/json");
             return {
                 method: 'POST',
                 headers: header,
-                body: JSON.stringify({
-                    "search": searchTxt
-                })
+                body: JSON.stringify(bodyPayload)
             }
         }
 
-        function sendNotification(e) {
-            const msg = document.getElementById('txt-box').value;
-            fetch(`/api/search`, requestOption(msg))
+        const generatePayload = (isQuery) => {
+            if (isQuery) {
+                const msg = document.getElementById('txt-box').value;
+                return {
+                    "search": msg
+                }
+            } else {
+                const searchParam = {
+                    limit: +document.getElementById('limit-box').value,
+                    filter: {}
+                };
+                const inpiutList = document.querySelectorAll('#dropdownSearch .child-prop input');
+                for (let i = 0; i < inpiutList.length; i = i + 2) {
+                    const key = inpiutList[i].value
+                    const value = inpiutList[i + 1].value
+                    searchParam.filter[key] = value
+                }
+                return searchParam;
+            }
+        }
+
+        function sendNotification(e, isQuery) {
+            const payload = generatePayload(isQuery);
+            fetch(`/api/search`, requestOption(payload))
                 .then((response) => response.json())
                 .then((data) => {
                     console.log(data);
@@ -126,6 +188,31 @@
             }, [])]
         }
 
+        function addNew() {
+            const cloneNode = document.getElementById("dropdownSearch")
+                .firstChild
+                .nextElementSibling
+                .cloneNode(true);
+
+            cloneNode.querySelectorAll('input').forEach(e => {
+                e.value = ''
+            })
+            document.getElementById("dropdownSearch").appendChild(cloneNode);
+            document.getElementById("dropdownSearch").value = '';
+        }
+
+        function removeChildren(e) {
+            if (e.target.parentElement.parentElement.childElementCount > 1) {
+                e.target.parentElement.remove()
+            }
+        }
+
+        function swithcSearchOption() {
+            const first = document.getElementById('textFreeSearch').style.display;
+            const second = document.getElementById('dropdownSearchArea').style.display;
+            document.getElementById('textFreeSearch').style.display = second;
+            document.getElementById('dropdownSearchArea').style.display = first;
+        }
     </script>
 </body>
 
