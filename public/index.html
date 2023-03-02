@@ -163,20 +163,26 @@
 
         function displayResult({ result: list, headerList }) {
             const table = document.getElementById('result');
-            const header = createRow(headerList, true);
+            const header = createHeader(headerList);
             let rows = `<tr>${header}</tr>`;
             for (let i = 0, len = list.length; i < len; i++) {
-                let values = Object.values(list[i]);
-                const columns = createRow(values);
+                const columns = createRow(list[i], headerList);
                 rows = rows + `<tr>${columns}</tr>`;
             }
             table.innerHTML = rows;
         }
 
-        function createRow(node = [], isHeader = false) {
-            const type = isHeader ? 'th' : 'td';
+        function createHeader(node = []) {
             return node.reduce((result, prop) => {
-                result = `${result}<${type}>${typeof prop === 'object' ? JSON.stringify(prop) : prop}</${type}>`
+                result = `${result}<th>${prop}</th>`
+                return result;
+            }, '');
+        }
+
+        function createRow(node = {}, header = []) {
+            return header.reduce((result, prop) => {
+                const value = node[prop];
+                result = `${result}<td>${typeof value === 'object' ? JSON.stringify(value) : value}</td>`
                 return result;
             }, '');
         }

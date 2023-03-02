@@ -26,7 +26,7 @@ app.post('/api/search', async (req, res) => {
                     }
                     // handle integer value
                     if (row[e].constructor.name == 'Integer') {
-                        row[e] = row[e].toString();
+                        row[e] = row[e].toInt()
                     }
                 })
             })
