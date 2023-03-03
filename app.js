@@ -38,7 +38,7 @@ app.post('/api/search', async (req, res) => {
 })
 
 function generateQueryToEexecute(payload = {}) {
-    const { search = null, model = 'Customer', filter = {}, limit = 10 } = payload;
+    const { search = null, model = 'Customer', filter = {}, fields = [], limit = 10 } = payload;
 
     // if we have query in body then return
     if (search && typeof search === 'string') {
@@ -50,7 +50,14 @@ function generateQueryToEexecute(payload = {}) {
         return result;
     }, '');
 
-    const queryStr = `MATCH (e:${model}) ${filterQuery != '' ? ` WHERE ${filterQuery}` : ''} RETURN e LIMIT ${limit}`;
+    const returnData = fields.reduce((res, ele) => {
+        if (ele) {
+            res = res + `e.${ele},`
+        }
+        return res;
+    }, '').slice(0, -1);
+
+    const queryStr = `MATCH (e:${model}) ${filterQuery != '' ? ` WHERE ${filterQuery}` : ''} RETURN ${returnData || 'e'} LIMIT ${limit}`;
     return queryStr;
 }
 

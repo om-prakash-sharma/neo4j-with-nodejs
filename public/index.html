@@ -66,7 +66,8 @@
             display: inline;
         }
 
-        .child-prop input {
+        .child-prop input,
+        #fieldsList {
             height: 35px;
             width: 200px;
             border-radius: 4px;
@@ -104,6 +105,7 @@
                 </div>
             </div>
             <div style="display: inline-block;">
+                <input id="fieldsList" type="text" name="fields" value="" placeholder="selected data" />
                 <select id="limit-box" name="limit" placeholder="Limit">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -139,8 +141,10 @@
             } else {
                 const searchParam = {
                     limit: +document.getElementById('limit-box').value,
-                    filter: {}
+                    filter: {},
+                    fields: []
                 };
+                searchParam.fields = document.getElementById('fieldsList').value.split(',');
                 const inpiutList = document.querySelectorAll('#dropdownSearch .child-prop input');
                 for (let i = 0; i < inpiutList.length; i = i + 2) {
                     const key = inpiutList[i].value
